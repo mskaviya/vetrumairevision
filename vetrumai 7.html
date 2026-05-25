@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P6 Tamil Case Marker Escape Corridor</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #1a1c23;
+            color: #e0e4f0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .game-wrapper {
+            width: 100%;
+            max-width: 1000px;
+            background: #252836;
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            overflow: hidden;
+            border: 2px solid #3f445e;
+        }
+
+        /* Corridor / Left Sidebar Styling */
+        .corridor-panel {
+            background: #1f212c;
+            padding: 20px;
+            border-right: 2px solid #3f445e;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .door-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex-grow: 1;
+            justify-content: center;
+        }
+
+        .door-node {
+            background: #15171e;
+            border: 2px solid #3a3f58;
+            padding: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+
+        .door-node.active {
+            border-color: #00ecff;
+            background: #1c2635;
+            box-shadow: 0 0 10px rgba(0, 236, 255, 0.2);
+        }
+
+        .door-node.unlocked {
+            border-color: #4caf50;
+            background: #18271f;
+        }
+
+        .door-node.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Puzzle Center / Right Panel Styling */
+        .puzzle-panel {
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Grammar Helper Rule Graphic Matrix Interface */
+        .grammar-matrix-card {
+            background: #eae6f5;
+            color: #4a154b;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid #7b1fa2;
+        }
+
+        .matrix-title {
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 8px;
+            text-align: center;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            padding-bottom: 4px;
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .matrix-cell {
+            background: rgba(255,255,255,0.7);
+            padding: 5px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .di-selector {
+            display: flex;
+            background: #1f212c;
+            padding: 6px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            gap: 5px;
+        }
+
+        .di-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            background: transparent;
+            color: #a0aec0;
+            border: none;
+            transition: 0.2s;
+        }
+
+        .di-tab.selected {
+            background: #00ecff;
+            color: #0b0e14;
+        }
+
+        .display-box {
+            background: #15171e;
+            border: 1px solid #3f445e;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .q-header {
+            color: #ffb74d;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .q-text {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        /* Inputs and Mechanics Layout */
+        .interaction-area {
+            margin-top: 10px;
+        }
+
+        .mcq-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .mcq-option {
+            background: #2f334d;
+            border: 1px solid #484f75;
+            padding: 14px 20px;
+            border-radius: 8px;
+            color: #fff;
+            text-align: left;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+
+        .mcq-option:hover {
+            background: #3d4366;
+            border-color: #00ecff;
+        }
+
+        .text-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .text-input-container input {
+            flex-grow: 1;
+            background: #15171e;
+            border: 1px solid #484f75;
+            padding: 14px;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .text-input-container button {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .feedback-banner {
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+        }
+
+        .feedback-banner.right {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 2px solid #4caf50;
+        }
+
+        .feedback-banner.wrong {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 2px solid #f44336;
+        }
+
+        @media (max-width: 768px) {
+            .game-wrapper { grid-template-columns: 1fr; }
+            .corridor-panel { border-right: none; border-bottom: 2px solid #3f445e; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-wrapper">
+
+    <div class="corridor-panel">
+        <div class="door-list">
+            <div class="door-node active" id="doorNode1" onclick="selectDoor(1)">
+                <span>🚪 கதவு 1 (Door 1)</span>
+                <strong id="doorStatus1">🟢 Open</strong>
+            </div>
+            <div class="door-node locked" id="doorNode2" onclick="selectDoor(2)">
+                <span>🚪 கதவு 2 (Door 2)</span>
+                <strong id="doorStatus2">🔒 Locked</strong>
+            </div>
+            <div class="door-node locked" id="doorNode3" onclick="selectDoor(3)">
+                <span>🚪 கதவு 3 (Door 3)</span>
+                <strong id="doorStatus3">🔒 Locked</strong>
+            </div>
+            <div class="door-node locked" id="doorNode4" onclick="selectDoor(4)">
+                <span>🚪 கதவு 4 (Door 4)</span>
+                <strong id="doorStatus4">🔒 Locked</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="puzzle-panel">
+        
+        <div class="grammar-matrix-card">
+            <div class="matrix-title">-க்கு உருபு வரும்போது மாறும் விதிமுறை மாற்று அட்டை</div>
+            <div class="matrix-grid">
+                <div class="matrix-cell">உ / ஆ<br>⬇️<br>வுக்கு</div>
+                <div class="matrix-cell">இ / ஐ<br>⬇️<br>க்கு</div>
+                <div class="matrix-cell">மெய் ❌ ம்<br>⬇️<br>(உ)க்கு</div>
+                <div class="matrix-cell">ம்<br>⬇️<br>த்திற்கு</div>
+            </div>
+        </div>
+
+        <div class="di-selector">
+            <button class="di-tab selected" id="diTab1" onclick="setDILevel('1')">Level 1 (MCQ Options)</button>
+            <button class="di-tab" id="diTab2" onclick="setDILevel('2')">Level 2 (Punarchi Word Builder)</button>
+        </div>
+
+        <div class="display-box">
+            <div class="q-header" id="questionHeader">Door 1 — Question 1 of 3</div>
+            <div class="q-text" id="questionTextField">Loading sentence data...</div>
+            
+            <div class="interaction-area" id="interactionPanel">
+                </div>
+        </div>
+
+        <div class="feedback-banner" id="feedbackField"></div>
+    </div>
+
+</div>
+
+<script>
+    const dataset = {
+        1: [
+            {
+                baseNoun: "பள்ளி",
+                l1_text: "மாறன் ________ சென்றான்.",
+                l1_opts: ["(1) பள்ளிக்கு", "(2) பள்ளியை"],
+                l1_ans: "1",
+                l2_text: "மாறன் ________ சென்றான்.",
+                l2_ans: "பள்ளிக்கு"
+            },
+            {
+                baseNoun: "தம்பி",
+                l1_text: "அப்பா ________ கைப்பேசி வாங்கினார்.",
+                l1_opts: ["(1) தம்பியை", "(2) தம்பிக்கு"],
+                l1_ans: "2",
+                l2_text: "அப்பா ________ கைப்பேசி வாங்கினார்.",
+                l2_ans: "தம்பிக்கு"
+            },
+            {
+                baseNoun: "வகுப்பறை",
+                l1_text: "மாணவர்கள் வேகமாக ________ சென்றனர்.",
+                l1_opts: ["(1) வகுப்பறைக்கு", "(2) வகுப்பறையை"],
+                l1_ans: "1",
+                l2_text: "மாணவர்கள் வேகமாக ________ சென்றனர்.",
+                l2_ans: "வகுப்பறைக்கு"
+            }
+        ],
+        2: [
+            {
+                baseNoun: "நாற்காலி",
+                l1_text: "தச்சர் பழுதுபட்ட ________ புதிய மரக்காலை இணைத்துச் செப்பனிட்டார்.",
+                l1_opts: ["(1) நாற்காலியை", "(2) நாற்காலிக்கு"],
+                l1_ans: "2",
+                l2_text: "தச்சர் பழுதுபட்ட ________ புதிய மரக்காலை இணைத்துச் செப்பனிட்டார்.",
+                l2_ans: "நாற்காலிக்கு"
+            },
+            {
+                baseNoun: "அக்கா",
+                l1_text: "அயல்நாட்டில் இருந்து வந்த மாமா தன் அன்பு ________ அழகான ஆரம் பரிசளித்தார்.",
+                l1_opts: ["(1) அக்காவுக்கு", "(2) அக்காவை"],
+                l1_ans: "1",
+                l2_text: "அயல்நாட்டில் இருந்து வந்த மாமா தன் அன்பு ________ அழகான ஆரம் பரிசளித்தார்.",
+                l2_ans: "அக்காவுக்கு"
+            },
+            {
+                baseNoun: "ஊர்",
+                l1_text: "நீண்ட விடுமுறைக்குக் குடும்பத்தினர் அனைவரும் தங்கள் சொந்த ________ மகிழ்வோடு சென்றனர்.",
+                l1_opts: ["(1) ஊருக்கு", "(2) ஊரை"],
+                l1_ans: "1",
+                l2_text: "நீண்ட விடுமுறைக்குக் குடும்பத்தினர் அனைவரும் தங்கள் சொந்த ________ மகிழ்வோடு சென்றனர்.",
+                l2_ans: "ஊருக்கு"
+            }
+        ],
+        3: [
+            {
+                baseNoun: "தோட்டம்",
+                l1_text: "மாலை நேரத்தில் அண்ணன் செடிகளுக்கு நீர் பாய்ச்சுவதற்காகத் தன் வீட்டின் பின்புறமுள்ள ________ விரைந்தான்.",
+                l1_opts: ["(1) தோட்டத்தை", "(2) தோட்டத்திற்கு"],
+                l1_ans: "2",
+                l2_text: "மாலை நேரத்தில் அண்ணன் செடிகளுக்கு நீர் பாய்ச்சுவதற்காகத் தன் வீட்டின் பின்புறமுள்ள ________ விரைந்தான்.",
+                l2_ans: "தோட்டத்திற்கு"
+            },
+            {
+                baseNoun: "சிங்கப்பூர்",
+                l1_text: "சுற்றுலாப் பயணிகள் ஆசியாவின் மிக அழகிய தீவு நாடான ________ வரப் பெருமளவில் ஆர்வம் காட்டுகின்றனர்.",
+                l1_opts: ["(1) சிங்கப்பூருக்கு", "(2) சிங்கப்பூரை"],
+                l1_ans: "1",
+                l2_text: "சுற்றுலாப் பயணிகள் ஆசியாவின் மிக அழகிய தீவு நாடான ________ வரப் பெருமளவில் ஆர்வம் காட்டுகின்றனர்.",
+                l2_ans: "சிங்கப்பூருக்கு"
+            },
+            {
+                baseNoun: "மருத்துவமனை",
+                l1_text: "உடல் நலம் குன்றிய பாட்டியைப் பனிவுடன் கவனித்து ஆலோசனைகளைப் பெற மாமா மாலையில் அவசரமாக ________ அழைத்துச் சென்றார்.",
+                l1_opts: ["(1) மருத்துவமனையை", "(2) மருத்துவமனைக்கு"],
+                l1_ans: "2",
+                l2_text: "உடல் நலம் குன்றிய பாட்டியைப் பனிவுடன் கவனித்து ஆலோசனைகளைப் பெற மாமா மாலையில் அவசரமாக ________ அழைத்துச் சென்றார்.",
+                l2_ans: "மருத்துவமனைக்கு"
+            }
+        ],
+        4: [
+            {
+                baseNoun: "விளையாட்டு மைதானம்",
+                l1_text: "பள்ளிப் பாடவேளைகள் அனைத்தும் முடிந்தவுடன் உடற்பயிற்சி மேற்கொள்வதற்காக மாணவர்கள் அனைவரும் உற்சாகத்துடன் தங்களுக்குப் பிடித்தமான அகன்ற ________ ஓடினர்.",
+                l1_opts: ["(1) விளையாட்டு மைதானத்திற்கு", "(2) விளையாட்டு மைதானத்தை"],
+                l1_ans: "1",
+                l2_text: "பள்ளிப் பாடவேளைகள் அனைத்தும் முடிந்தவுடன் உடற்பயிற்சி மேற்கொள்வதற்காக மாணவர்கள் அனைவரும் உற்சாகத்துடன் தங்களுக்குப் பிடித்தமான அகன்ற ________ ஓடினர்.",
+                l2_ans: "விளையாட்டு மைதானத்திற்கு"
+            },
+            {
+                baseNoun: "பூனை",
+                l1_text: "வீட்டின் சமையலறையில் வைக்கப்பட்டிருந்த பாத்திரத்தில் இருந்த பசும்பால் முழுவதையும் தம்பியின் செல்லப் பிராணியான சிறிய வெள்ளை ________ கிண்ணத்தில் ஊற்றி வைத்தோம்.",
+                l1_opts: ["(1) பூனையை", "(2) பூனைக்கு"],
+                l1_ans: "2",
+                l2_text: "வீட்டின் சமையலறையில் வைக்கப்பட்டிருந்த பாத்திரத்தில் இருந்த பசும்பால் முழுவதையும் தம்பியின் செல்லப் பிராணியான சிறிய வெள்ளை ________ கிண்ணத்தில் ஊற்றி வைத்தோம்.",
+                l2_ans: "பூனைக்கு"
+            },
+            {
+                baseNoun: "நகரம்",
+                l1_text: "கிராமப்புறத்தில் வசித்து வந்த ஏழைக் குடும்பத்தினர் தங்களின் வாழ்வாதாரத்தைப் பெருக்கி நல்ல வேலைவாய்ப்புகளைத் தேடிக் கொள்ளும் நோக்கில் மிகப்பெரிய தொழில்வளமிக்க ________ குடிபெயர்ந்தனர்.",
+                l1_opts: ["(1) நகரத்திற்கு", "(2) நகரத்தை"],
+                l1_ans: "1",
+                l2_text: "கிராமப்புறத்தில் வசித்து வந்த ஏழைக் குடும்பத்தினர் தங்களின் வாழ்வாதாரத்தைப் பெருக்கி நல்ல வேலைவாய்ப்புகளைத் தேடிக் கொள்ளும் நோக்கில் மிகப்பெரிய தொழில்வளமிக்க ________ குடிபெயர்ந்தனர்.",
+                l2_ans: "நகரத்திற்கு"
+            }
+        ]
+    };
+
+    let currentDoor = 1;
+    let currentQuestionIndex = 0; 
+    let diLevel = "1"; 
+    let unlockedDoors = [1]; 
+
+    function setDILevel(level) {
+        diLevel = level;
+        document.getElementById("diTab1").classList.toggle("selected", level === "1");
+        document.getElementById("diTab2").classList.toggle("selected", level === "2");
+        hideFeedback();
+        renderQuestion();
+    }
+
+    function selectDoor(doorNum) {
+        if (!unlockedDoors.includes(doorNum)) return; 
+        
+        currentDoor = doorNum;
+        currentQuestionIndex = 0; 
+        hideFeedback();
+        
+        for(let i=1; i<=4; i++) {
+            const node = document.getElementById(`doorNode${i}`);
+            if(unlockedDoors.includes(i)) {
+                node.className = "door-node unlocked";
+                document.getElementById(`doorStatus${i}`).innerText = "✅ Cleared";
+            } else {
+                node.className = "door-node locked";
+                document.getElementById(`doorStatus${i}`).innerText = "🔒 Locked";
+            }
+        }
+        
+        document.getElementById(`doorNode${doorNum}`).className = "door-node active";
+        document.getElementById(`doorStatus${doorNum}`).innerText = "🟢 Active";
+        
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const currentQuestionData = dataset[currentDoor][currentQuestionIndex];
+        
+        document.getElementById("questionHeader").innerText = `கதவு ${currentDoor} (Door ${currentDoor}) — Question ${currentQuestionIndex + 1} of 3`;
+        
+        const textDisplay = (diLevel === "1") ? currentQuestionData.l1_text : currentQuestionData.l2_text;
+        
+        if(diLevel === "2") {
+            document.getElementById("questionTextField").innerHTML = `${textDisplay}<br><span style='color:#b39ddb; font-size:16px;'>[ மாற்றுச் சொல்: <b>${currentQuestionData.baseNoun}</b> ]</span>`;
+        } else {
+            document.getElementById("questionTextField").innerText = textDisplay;
+        }
+
+        const interactPanel = document.getElementById("interactionPanel");
+        interactPanel.innerHTML = ""; 
+
+        if (diLevel === "1") {
+            const mcqBox = document.createElement("div");
+            mcqBox.className = "mcq-container";
+            
+            currentQuestionData.l1_opts.forEach((opt, idx) => {
+                const btn = document.createElement("button");
+                btn.className = "mcq-option";
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer((idx + 1).toString());
+                mcqBox.appendChild(btn);
+            });
+            interactPanel.appendChild(mcqBox);
+        } else {
+            const textBox = document.createElement("div");
+            textBox.className = "text-input-container";
+            
+            const inputField = document.createElement("input");
+            inputField.type = "text";
+            inputField.id = "wordInputField";
+            inputField.placeholder = "விடையை இங்கே தட்டச்சு செய்யவும்...";
+            inputField.autocomplete = "off";
+            
+            inputField.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") handleTextSubmit();
+            });
+
+            const submitBtn = document.createElement("button");
+            submitBtn.innerText = "சரிபார்";
+            submitBtn.onclick = handleTextSubmit;
+
+            textBox.appendChild(inputField);
+            textBox.appendChild(submitBtn);
+            interactPanel.appendChild(textBox);
+            inputField.focus();
+        }
+    }
+
+    function handleTextSubmit() {
+        const val = document.getElementById("wordInputField").value.trim();
+        if(!val) return;
+        checkAnswer(val);
+    }
+
+    function checkAnswer(playerAnswer) {
+        const qData = dataset[currentDoor][currentQuestionIndex];
+        let correct = false;
+
+        if (diLevel === "1") {
+            correct = (playerAnswer === qData.l1_ans);
+        } else {
+            correct = (playerAnswer === qData.l2_ans);
+        }
+
+        const banner = document.getElementById("feedbackField");
+        banner.style.display = "block"; 
+        
+        if (correct) {
+            banner.innerText = "சரி";
+            banner.className = "feedback-banner right";
+            
+            setTimeout(() => {
+                advanceGame();
+            }, 1000);
+        } else {
+            banner.innerText = "தவறு";
+            banner.className = "feedback-banner wrong";
+        }
+    }
+
+    function hideFeedback() {
+        const banner = document.getElementById("feedbackField");
+        banner.style.display = "none";
+    }
+
+    function advanceGame() {
+        hideFeedback();
+        
+        if (currentQuestionIndex < 2) {
+            currentQuestionIndex++;
+            renderQuestion();
+        } else {
+            if (currentDoor < 4) {
+                const nextDoor = currentDoor + 1;
+                if (!unlockedDoors.includes(nextDoor)) {
+                    unlockedDoors.push(nextDoor);
+                }
+                selectDoor(nextDoor);
+            } else {
+                document.getElementById("questionHeader").innerText = "முடிவு";
+                document.getElementById("questionTextField").innerText = "நீங்கள் அனைத்து அறைகளையும் கடந்து விட்டீர்கள்!";
+                document.getElementById("interactionPanel").innerHTML = "<h2 style='color:#4caf50; text-align:center; font-size: 32px; margin: 20px 0;'>🎉 வாழ்த்துகள்! 🎉</h2>";
+                
+                for(let i=1; i<=4; i++) {
+                    document.getElementById(`doorNode${i}`).className = "door-node unlocked";
+                    document.getElementById(`doorStatus${i}`).innerText = "✅ Cleared";
+                }
+            }
+        }
+    }
+
+    window.onload = () => {
+        selectDoor(1);
+    };
+</script>
+
+</body>
+</html>
